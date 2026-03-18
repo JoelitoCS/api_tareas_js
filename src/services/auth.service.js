@@ -134,25 +134,36 @@ async function inicializarModulosEstudiante(estudianteId, cicloFormativo) {
  * Solo inserta las que no existan ya (evita duplicados si se llama varias veces).
  */
 async function inicializarTareasMock(estudianteId, cicloFormativo) {
-  // Obtener todos los módulos del ciclo para poder hacer el cruce por nombre
-  const { data: modulos } = await supabase
+  const { data: modulos, error: errorModulos } = await supabase
     .from('modulos')
     .select('id, nombre')
     .eq('ciclo_formativo', cicloFormativo);
 
-  if (!modulos || modulos.length === 0) return;
+  if (errorModulos) {
+    console.error('[tareasMock] Error:', errorModulos.message);
+    return;
+  }
 
-  // Mapa nombre → id para buscar rápido
+  if (!modulos || modulos.length === 0) {
+    console.warn(`[tareasMock] Sin módulos para ciclo: ${cicloFormativo}`);
+    return;
+  }
+
+  // Esto te mostrará los nombres EXACTOS que tiene Supabase
+  console.log(`[tareasMock] Módulos en Supabase para ${cicloFormativo}:`);
+  modulos.forEach(m => console.log(`  → "${m.nombre}"`));
+
   const modulosPorNombre = new Map(modulos.map((m) => [m.nombre, m.id]));
-
-  // Filtrar solo las tareas del ciclo del estudiante
   const tareasDeCiclo = TAREAS_MOCK.filter((t) => t.ciclo === cicloFormativo);
 
-  // Construir los registros a insertar
   const registros = [];
   for (const tarea of tareasDeCiclo) {
     const moduloId = modulosPorNombre.get(tarea.modulo);
-    if (!moduloId) continue;
+    if (!moduloId) {
+      // Esto te mostrará qué nombre no encuentra
+      console.warn(`[tareasMock] ⚠️ NO encontrado: "${tarea.modulo}"`);
+      continue;
+    }
     registros.push({
       modulo_id:         moduloId,
       estudiante_id:     estudianteId,
@@ -166,8 +177,9 @@ async function inicializarTareasMock(estudianteId, cicloFormativo) {
 
   if (registros.length === 0) return;
 
-  // Insertar todas de golpe
-  await supabase.from('tareas').insert(registros);
+  const { error } = await supabase.from('tareas').insert(registros);
+  if (error) console.error('[tareasMock] Error insertando:', error.message);
+  else console.log(`[tareasMock] ✅ ${registros.length} tareas insertadas`);
 }
 
 async function register(dto) {
