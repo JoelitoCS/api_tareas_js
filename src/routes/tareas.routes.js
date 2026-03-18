@@ -27,7 +27,7 @@ router.post('/', tareasController.create);
 // PUT    /api/tareas/:id                                       → actualizar tarea
 router.put('/:id', tareasController.update);
 
-// DELETE /api/tareas/:id                                       → solo admin
-router.delete('/:id', adminOnly, tareasController.delete);
+// DELETE /api/tareas/:id → cualquier usuario autenticado puede borrar sus propias tareas
+router.delete('/:id', tareasController.delete);
 
 module.exports = router;
