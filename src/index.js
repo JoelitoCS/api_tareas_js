@@ -15,6 +15,7 @@ const app  = express();
 const PORT = process.env.PORT ?? 3000;
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const allowedOrigins = [
@@ -22,14 +23,25 @@ const allowedOrigins = [
   'http://localhost:4173',
   'https://tareas-modulos-final.vercel.app',
   FRONTEND_URL,
+=======
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  process.env.FRONTEND_URL,        // añade tu dominio de producción en Railway como variable de entorno
+>>>>>>> 44f735eeaa08b72ee7d3a3a8cc0bad11e118f646
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
+<<<<<<< HEAD
     // Sin origin: curl, Postman, apps móviles → permitir
     if (!origin) return callback(null, true);
     // Si FRONTEND_URL es '*', permitir todo
     if (FRONTEND_URL === '*') return callback(null, true);
+=======
+    // Permite peticiones sin origin (curl, Postman, apps móviles)
+    if (!origin) return callback(null, true);
+>>>>>>> 44f735eeaa08b72ee7d3a3a8cc0bad11e118f646
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS bloqueado para el origen: ${origin}`));
   },
