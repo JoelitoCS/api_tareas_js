@@ -14,8 +14,29 @@ const { errorHandler }         = require('./middleware/errorHandler');
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
 
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  process.env.FRONTEND_URL,        // añade tu dominio de producción en Railway como variable de entorno
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permite peticiones sin origin (curl, Postman, apps móviles)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS bloqueado para el origen: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Responde a los preflights OPTIONS de forma explícita
+app.options('*', cors());
+
 // ─── Middlewares globales ─────────────────────────────────────────────────────
-app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
