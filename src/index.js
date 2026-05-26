@@ -14,8 +14,34 @@ const { errorHandler }         = require('./middleware/errorHandler');
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
 
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'https://tareas-modulos-final.vercel.app',
+  FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Sin origin: curl, Postman, apps móviles → permitir
+    if (!origin) return callback(null, true);
+    // Si FRONTEND_URL es '*', permitir todo
+    if (FRONTEND_URL === '*') return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS bloqueado para el origen: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Responde a los preflights OPTIONS de forma explícita
+app.options('*', cors());
+
 // ─── Middlewares globales ─────────────────────────────────────────────────────
-app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
